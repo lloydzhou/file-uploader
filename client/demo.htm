@@ -21,16 +21,17 @@
 	</div>
 
 	<div class="qq-upload-extra-drop-area">Drop files here too</div>
-    <input type="file" >
+    <!--<input type="file" >-->
     <script src="fileuploader.js" type="text/javascript"></script>
 	<script src="fileuploader.resume.js" type="text/javascript"></script>
     <script>        
         function createUploader(){            
             var uploader = new qq.FileUploader({
                 element: document.getElementById('file-uploader-demo1'),
-                action: 'do-nothing.htm',
+                //action: 'do-nothing.htm',
+				action: '/server/index.php',
                 debug: true,
-                resume: true,
+                resume: {chunk: 1024 * 1024 * 2},
                 extraDropzones: [qq.getByClass(document, 'qq-upload-extra-drop-area')[0]]
             });           
         }
@@ -38,12 +39,12 @@
         // in your app create uploader as soon as the DOM is ready
         // don't wait for the window to load  
         window.onload = createUploader;     
-
+		/*
 		window.BlobBuilder = window.MozBlobBuilder || window.WebKitBlobBuilder || window.BlobBuilder;
 		
-		function upload(blobOrFile) {
+		function upload(blobOrFile, start) {
 			var xhr = new XMLHttpRequest();
-			xhr.open('POST', '/server', true);
+			xhr.open('POST', '/server/index.php?start=' + start, true);
 			xhr.onload = function(e) { 
 				console.log(blobOrFile)
 			};
@@ -64,13 +65,13 @@
 				// Note: blob.slice has changed semantics and been prefixed. See http://goo.gl/U9mE5.
 				var slice = blob.mozSlice || blob.webkitSlice || blob.slice, chunk = slice.call(blob,start, end)
 				
-				upload(chunk);
+				upload(chunk, start);
 				
 				start = end;
 				end = start + BYTES_PER_CHUNK;
 			}
 		}, false);
-	
+	*/
     </script>    
 </body>
 </html>

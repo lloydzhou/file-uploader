@@ -30,21 +30,33 @@ class qqUploadedFileXhr {
      * Save the file to the specified path
      * @return boolean TRUE on success
      */
-    function save($path) {    
+    function save($uploadDirectory, $filename) {
+		$path = $uploadDirectory. $filename;   
         $input = fopen("php://input", "r");
         $temp = tmpfile();
         $realSize = stream_copy_to_stream($input, $temp);
         fclose($input);
         
-        if ($realSize != $this->getSize()){            
-            return false;
-        }
+        //if ($realSize != $this->getSize()){            
+        //    return false;
+        //}
         
         $target = fopen($path, "w");        
         fseek($temp, 0, SEEK_SET);
         stream_copy_to_stream($temp, $target);
         fclose($target);
-        
+        if (isset($_GET['merge']) && $file = $_GET['merge']) {
+			$part = $_GET['part'];
+			$out = fopen($uploadDirectory. $file, "w");
+			for ($i = 1; $i <= $part; ++$i){
+				$in = fopen($infile = $uploadDirectory. $file. '.part' . $i, 'r');
+				while($line = fread($in, 8192))
+					fwrite($out, $line);
+				fclose($in);
+				unlink($infile);
+			}
+			fclose($out);
+		}
         return true;
     }
     function getName() {
@@ -67,7 +79,8 @@ class qqUploadedFileForm {
      * Save the file to the specified path
      * @return boolean TRUE on success
      */
-    function save($path) {
+    function save($uploadDirectory, $filename) {
+		$path = $uploadDirectory. $filename;
         if(!move_uploaded_file($_FILES['qqfile']['tmp_name'], $path)){
             return false;
         }
@@ -114,7 +127,7 @@ class qqFileUploader {
         
         if ($postSize < $this->sizeLimit || $uploadSize < $this->sizeLimit){
             $size = max(1, $this->sizeLimit / 1024 / 1024) . 'M';             
-            die("{'error':'increase post_max_size and upload_max_filesize to $size'}");    
+            die("{'error':'increase post_max_size and upload_max_filesize to $size, $postSize, $uploadSize'}");    
         }        
     }
     
@@ -140,7 +153,7 @@ class qqFileUploader {
         if (!$this->file){
             return array('error' => 'No files were uploaded.');
         }
-        
+        /*
         $size = $this->file->getSize();
         
         if ($size == 0) {
@@ -150,7 +163,7 @@ class qqFileUploader {
         if ($size > $this->sizeLimit) {
             return array('error' => 'File is too large');
         }
-        
+        */
         $pathinfo = pathinfo($this->file->getName());
         $filename = $pathinfo['filename'];
         //$filename = md5(uniqid());
@@ -163,12 +176,12 @@ class qqFileUploader {
         
         if(!$replaceOldFile){
             /// don't overwrite previous files that were uploaded
-            while (file_exists($uploadDirectory . $filename . '.' . $ext)) {
+            while (file_exists($uploadDirectory. $filename . '.' . $ext)) {
                 $filename .= rand(10, 99);
             }
         }
         
-        if ($this->file->save($uploadDirectory . $filename . '.' . $ext)){
+        if ($this->file->save($uploadDirectory, $filename . '.' . $ext)){
             return array('success'=>true);
         } else {
             return array('error'=> 'Could not save uploaded file.' .
