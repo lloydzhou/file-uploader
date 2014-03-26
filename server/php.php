@@ -163,7 +163,7 @@ class qqFileUploader {
             return array('error' => 'File has an invalid extension, it should be one of '. $these . '.');
         }
         
-        if(isset($_GET['part']) && 1 == $_GET['part'] && !$replaceOldFile){
+        if(((isset($_GET['part']) && 1 == $_GET['part']) || (!isset($_GET['part']))) && !$replaceOldFile){
             /// don't overwrite previous files that were uploaded
             // backup old file, when upload first chunk.
             $oldfilename = $filename;
@@ -173,7 +173,7 @@ class qqFileUploader {
             @rename($uploadDirectory. $filename . '.' . $ext, $uploadDirectory. $oldfilename . '.' . $ext);
         }
         // when upload first chunk, replace old file need to delete it before save file.
-        if (isset($_GET['part']) && 1 == $_GET['part'] && $replaceOldFile) 
+        if(((isset($_GET['part']) && 1 == $_GET['part']) || (!isset($_GET['part']))) && $replaceOldFile) 
             @unlink($uploadDirectory. $filename . '.' . $ext);
         
         if ($this->file->save($uploadDirectory. $filename . '.' . $ext)){

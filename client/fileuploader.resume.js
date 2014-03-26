@@ -3,8 +3,10 @@
  */
 qq.extend(qq.FileUploader.prototype, {_createUploadHandler: function (){
     var handler = qq.FileUploaderBasic.prototype._createUploadHandler.call(this);
-    handler._options.resume = this._options.resume;
+    handler._options.resume = this._resume_support() && this._options.resume;
     return handler
+}, _resume_support: function (){
+    return 'function' == typeof File && (File.prototype.mozSlice || File.prototype.webkitSlice || File.prototype.slice)
 }})
 qq.extend(qq.UploadHandlerXhr.prototype, {
     _upload_old: qq.UploadHandlerXhr.prototype._upload, 
