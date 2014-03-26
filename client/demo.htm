@@ -39,39 +39,7 @@
         // in your app create uploader as soon as the DOM is ready
         // don't wait for the window to load  
         window.onload = createUploader;     
-		/*
-		window.BlobBuilder = window.MozBlobBuilder || window.WebKitBlobBuilder || window.BlobBuilder;
-		
-		function upload(blobOrFile, start) {
-			var xhr = new XMLHttpRequest();
-			xhr.open('POST', '/server/index.php?start=' + start, true);
-			xhr.onload = function(e) { 
-				console.log(blobOrFile)
-			};
-			xhr.send(blobOrFile);
-		}
-		
-		document.querySelector('input[type="file"]').addEventListener('change', function(e) {
-			var blob = this.files[0];
-			
-			const BYTES_PER_CHUNK = 1024 * 1024; // 1MB chunk sizes.
-			const SIZE = blob.size;
-			
-			var start = 0;
-			var end = BYTES_PER_CHUNK;
-			
-			while(start < SIZE) {
-				
-				// Note: blob.slice has changed semantics and been prefixed. See http://goo.gl/U9mE5.
-				var slice = blob.mozSlice || blob.webkitSlice || blob.slice, chunk = slice.call(blob,start, end)
-				
-				upload(chunk, start);
-				
-				start = end;
-				end = start + BYTES_PER_CHUNK;
-			}
-		}, false);
-	*/
+
     </script>    
 </body>
 </html>

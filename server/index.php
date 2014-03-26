@@ -8,8 +8,7 @@ require('php.php');
 $uploader = new qqFileUploader($allowedExtensions, $sizeLimit);
 
 // Call handleUpload() with the name of the folder, relative to PHP's getcwd()
-$result = $uploader->handleUpload('uploads/', true);
+$result = $uploader->handleUpload('uploads/');
 
 // to pass data through iframe you will need to encode all html tags
 echo htmlspecialchars(json_encode($result), ENT_NOQUOTES);
-

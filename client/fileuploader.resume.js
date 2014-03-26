@@ -34,17 +34,17 @@ qq.extend(qq.UploadHandlerXhr.prototype, {
 
         xhr.onreadystatechange = function(){            
             if (xhr.readyState == 4){
-				console.log('start to upload next chunk, start: ' + start + ', part: ' + (part + 1))
-				if (end < size)
+				self.log('complete to upload current chunk, start: ' + start + ', part: ' + part)
+				if (end < size && xhr.status == 200)
 					qq.UploadHandlerXhr.prototype._upload.call(self, id, params, part+1)
 				else
-					self._onComplete(id, xhr);                    
+					self._onComplete(id, xhr);
             }
         };
 
         // build query string
         params = params || {};
-        params[this._options.inputName] = name + '.part' + part;
+        params[this._options.inputName] = name;
 		params['part'] = part;
 		if (end > size)
 			params['merge'] = name;

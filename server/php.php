@@ -30,33 +30,20 @@ class qqUploadedFileXhr {
      * Save the file to the specified path
      * @return boolean TRUE on success
      */
-    function save($uploadDirectory, $filename) {
-		$path = $uploadDirectory. $filename;   
+    function save($path) {
         $input = fopen("php://input", "r");
-        $temp = tmpfile();
-        $realSize = stream_copy_to_stream($input, $temp);
+		$realSize = 0;
+		$target = fopen($path, "a");
+		if (!$target) 
+			return false;
+        while (!feof($input)) 
+			$realSize += fwrite($target,fread($input,8192));
         fclose($input);
-        
-        //if ($realSize != $this->getSize()){            
-        //    return false;
-        //}
-        
-        $target = fopen($path, "w");        
-        fseek($temp, 0, SEEK_SET);
-        stream_copy_to_stream($temp, $target);
-        fclose($target);
-        if (isset($_GET['merge']) && $file = $_GET['merge']) {
-			$part = $_GET['part'];
-			$out = fopen($uploadDirectory. $file, "w");
-			for ($i = 1; $i <= $part; ++$i){
-				$in = fopen($infile = $uploadDirectory. $file. '.part' . $i, 'r');
-				while($line = fread($in, 8192))
-					fwrite($out, $line);
-				fclose($in);
-				unlink($infile);
-			}
-			fclose($out);
-		}
+		fclose($target);
+
+        if ($realSize != $this->getSize()){            
+            return false;
+        }
         return true;
     }
     function getName() {
@@ -64,8 +51,11 @@ class qqUploadedFileXhr {
     }
     function getSize() {
         if (isset($_SERVER["CONTENT_LENGTH"])){
-            return (int)$_SERVER["CONTENT_LENGTH"];            
-        } else {
+            return (int)$_SERVER["CONTENT_LENGTH"] ;       
+        }elseif(isset($_SERVER['HTTP_CONTENT_LENGTH'])) {
+			// the php build in server can not get $_SERVER["CONTENT_LENGTH"]
+			return (int)$_SERVER['HTTP_CONTENT_LENGTH']; 
+		} else {
             throw new Exception('Getting content length is not supported.');
         }      
     }   
@@ -79,8 +69,7 @@ class qqUploadedFileForm {
      * Save the file to the specified path
      * @return boolean TRUE on success
      */
-    function save($uploadDirectory, $filename) {
-		$path = $uploadDirectory. $filename;
+    function save($path) {
         if(!move_uploaded_file($_FILES['qqfile']['tmp_name'], $path)){
             return false;
         }
@@ -153,7 +142,7 @@ class qqFileUploader {
         if (!$this->file){
             return array('error' => 'No files were uploaded.');
         }
-        /*
+        
         $size = $this->file->getSize();
         
         if ($size == 0) {
@@ -163,7 +152,7 @@ class qqFileUploader {
         if ($size > $this->sizeLimit) {
             return array('error' => 'File is too large');
         }
-        */
+        
         $pathinfo = pathinfo($this->file->getName());
         $filename = $pathinfo['filename'];
         //$filename = md5(uniqid());
@@ -174,14 +163,17 @@ class qqFileUploader {
             return array('error' => 'File has an invalid extension, it should be one of '. $these . '.');
         }
         
-        if(!$replaceOldFile){
+        if(isset($_GET['part']) && 1 == $_GET['part'] && !$replaceOldFile){
             /// don't overwrite previous files that were uploaded
-            while (file_exists($uploadDirectory. $filename . '.' . $ext)) {
-                $filename .= rand(10, 99);
+			// backup old file, when upload first chunk.
+			$oldfilename = $filename;
+            while (file_exists($uploadDirectory. $oldfilename . '.' . $ext)) {
+                $oldfilename .= rand(10, 99);
             }
+			@rename($uploadDirectory. $filename . '.' . $ext, $uploadDirectory. $oldfilename . '.' . $ext);
         }
         
-        if ($this->file->save($uploadDirectory, $filename . '.' . $ext)){
+        if ($this->file->save($uploadDirectory. $filename . '.' . $ext)){
             return array('success'=>true);
         } else {
             return array('error'=> 'Could not save uploaded file.' .
