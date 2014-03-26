@@ -32,14 +32,14 @@ class qqUploadedFileXhr {
      */
     function save($path) {
         $input = fopen("php://input", "r");
-		$realSize = 0;
-		$target = fopen($path, "a");
-		if (!$target) 
-			return false;
+        $realSize = 0;
+        $target = fopen($path, "a");
+        if (!$target) 
+            return false;
         while (!feof($input)) 
-			$realSize += fwrite($target,fread($input,8192));
+            $realSize += fwrite($target,fread($input,8192));
         fclose($input);
-		fclose($target);
+        fclose($target);
 
         if ($realSize != $this->getSize()){            
             return false;
@@ -53,9 +53,9 @@ class qqUploadedFileXhr {
         if (isset($_SERVER["CONTENT_LENGTH"])){
             return (int)$_SERVER["CONTENT_LENGTH"] ;       
         }elseif(isset($_SERVER['HTTP_CONTENT_LENGTH'])) {
-			// the php build in server can not get $_SERVER["CONTENT_LENGTH"]
-			return (int)$_SERVER['HTTP_CONTENT_LENGTH']; 
-		} else {
+            // the php build in server can not get $_SERVER["CONTENT_LENGTH"]
+            return (int)$_SERVER['HTTP_CONTENT_LENGTH']; 
+        } else {
             throw new Exception('Getting content length is not supported.');
         }      
     }   
@@ -105,10 +105,10 @@ class qqFileUploader {
         }
     }
     
-	public function getName(){
-		if ($this->file)
-			return $this->file->getName();
-	}
+    public function getName(){
+        if ($this->file)
+            return $this->file->getName();
+    }
     
     private function checkServerSettings(){        
         $postSize = $this->toBytes(ini_get('post_max_size'));
@@ -156,7 +156,7 @@ class qqFileUploader {
         $pathinfo = pathinfo($this->file->getName());
         $filename = $pathinfo['filename'];
         //$filename = md5(uniqid());
-        $ext = @$pathinfo['extension'];		// hide notices if extension is empty
+        $ext = @$pathinfo['extension'];        // hide notices if extension is empty
 
         if($this->allowedExtensions && !in_array(strtolower($ext), $this->allowedExtensions)){
             $these = implode(', ', $this->allowedExtensions);
@@ -165,13 +165,16 @@ class qqFileUploader {
         
         if(isset($_GET['part']) && 1 == $_GET['part'] && !$replaceOldFile){
             /// don't overwrite previous files that were uploaded
-			// backup old file, when upload first chunk.
-			$oldfilename = $filename;
+            // backup old file, when upload first chunk.
+            $oldfilename = $filename;
             while (file_exists($uploadDirectory. $oldfilename . '.' . $ext)) {
                 $oldfilename .= rand(10, 99);
             }
-			@rename($uploadDirectory. $filename . '.' . $ext, $uploadDirectory. $oldfilename . '.' . $ext);
+            @rename($uploadDirectory. $filename . '.' . $ext, $uploadDirectory. $oldfilename . '.' . $ext);
         }
+        // when upload first chunk, replace old file need to delete it before save file.
+        if (isset($_GET['part']) && 1 == $_GET['part'] && $replaceOldFile) 
+            @unlink($uploadDirectory. $filename . '.' . $ext);
         
         if ($this->file->save($uploadDirectory. $filename . '.' . $ext)){
             return array('success'=>true);
